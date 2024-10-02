@@ -161,7 +161,6 @@ public class MainViewModel extends AndroidViewModel {
     public void addTransaction(Transaction transaction) {
         realm.beginTransaction();
         realm.copyToRealmOrUpdate(transaction);
-        // some code here
         realm.commitTransaction();
     }
 
@@ -178,7 +177,6 @@ public class MainViewModel extends AndroidViewModel {
         realm.copyToRealmOrUpdate(new Transaction(Constants.EXPENSE, "Investment", "Bank", "Some note here", new Date(), -900, new Date().getTime()));
         realm.copyToRealmOrUpdate(new Transaction(Constants.INCOME, "Rent", "Other", "Some note here", new Date(), 500, new Date().getTime()));
         realm.copyToRealmOrUpdate(new Transaction(Constants.INCOME, "Business", "Card", "Some note here", new Date(), 500, new Date().getTime()));
-        // some code here
         realm.commitTransaction();
     }
 

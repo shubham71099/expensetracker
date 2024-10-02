@@ -143,6 +143,7 @@ public class AddTransactionFragment extends BottomSheetDialogFragment {
         });
 
         binding.saveTransactionBtn.setOnClickListener(c-> {
+
             String amountText = binding.amount.getText().toString().trim();
             String note = binding.note.getText().toString().trim();
             String date = binding.date.getText().toString().trim();
