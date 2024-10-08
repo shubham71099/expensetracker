@@ -107,8 +107,6 @@ public class APIService {
         });
     }
 
-
-
     public void addTransaction(String authToken, Transaction transaction, final APICallback<Transaction> callback) {
         Call<Transaction> call = apiInterface.addTransaction(authToken, transaction);
         call.enqueue(new Callback<Transaction>() {
@@ -246,7 +244,6 @@ interface APIInterface {
 
 //    @GET("/api/transactions")
 //    Call<List<Transaction>> getTransactions(@Header("x-auth-token") String authToken);
-
 //    @GET("/api/transactions")
 //    Call<List<Transaction>> getTransactions(@Header("x-auth-token") String authToken,
 //                                            @Body GetTransactionsRequest getTransactionsRequest);

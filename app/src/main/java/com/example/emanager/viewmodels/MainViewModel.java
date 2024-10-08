@@ -90,7 +90,6 @@ public class MainViewModel extends AndroidViewModel {
             return;
         }
 
-        // Call the API to get transactions
         APIService.getInstance().getTransactions(authToken, startDate, endDate, new APICallback<List<Transaction>>() {
             @Override
             public void onSuccess(List<Transaction> result) {
@@ -108,7 +107,6 @@ public class MainViewModel extends AndroidViewModel {
             @Override
             public void onError(Throwable t) {
                 Log.e("getTransactions", "Error fetching transactions", t);
-                // Consider adding error handling here
             }
         });
     }
