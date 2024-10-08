@@ -1,24 +1,37 @@
 package com.example.emanager.viewmodels;
 
+import static java.security.AccessController.getContext;
+
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.emanager.models.Transaction;
+import com.example.emanager.services.APICallback;
 import com.example.emanager.utils.Constants;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
+import com.example.emanager.services.APIService;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
 public class MainViewModel extends AndroidViewModel {
 
-    public MutableLiveData<RealmResults<Transaction>> transactions = new MutableLiveData<>();
-    public MutableLiveData<RealmResults<Transaction>> categoriesTransactions = new MutableLiveData<>();
+//    public MutableLiveData<RealmResults<Transaction>> transactions = new MutableLiveData<>();
+//    public MutableLiveData<RealmResults<Transaction>> categoriesTransactions = new MutableLiveData<>();
+
+    public MutableLiveData<List<Transaction>> transactions = new MutableLiveData<>();
+    public MutableLiveData<List<Transaction>> categoriesTransactions = new MutableLiveData<>();
 
     public MutableLiveData<Double> totalIncome = new MutableLiveData<>();
     public MutableLiveData<Double> totalExpense = new MutableLiveData<>();
@@ -29,159 +42,196 @@ public class MainViewModel extends AndroidViewModel {
 
     public MainViewModel(@NonNull Application application) {
         super(application);
-        Realm.init(application);
-        setupDatabase();
+//        Realm.init(application);
+//        setupDatabase();
     }
 
     public void getTransactions(Calendar calendar, String type) {
-        this.calendar = calendar;
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
+        this.calendar = (Calendar) calendar.clone(); // Clone to avoid modifying the original calendar
 
+        SharedPreferences sharedPreferences = getApplication().getSharedPreferences("auth_preferences", Context.MODE_PRIVATE);
+        String authToken = sharedPreferences.getString("auth_token", "");
 
-        RealmResults<Transaction> newTransactions = null;
-        if(Constants.SELECTED_TAB_STATS == Constants.DAILY) {
-            newTransactions = realm.where(Transaction.class)
-                    .greaterThanOrEqualTo("date", calendar.getTime())
-                    .lessThan("date", new Date(calendar.getTime().getTime() + (24 * 60 * 60 * 1000)))
-                    .equalTo("type", type)
-                    .findAll();
-
-        } else if(Constants.SELECTED_TAB_STATS == Constants.MONTHLY) {
-            calendar.set(Calendar.DAY_OF_MONTH,0);
-
-            Date startTime = calendar.getTime();
-
-
-            calendar.add(Calendar.MONTH,1);
-            Date endTime = calendar.getTime();
-
-            newTransactions = realm.where(Transaction.class)
-                    .greaterThanOrEqualTo("date", startTime)
-                    .lessThan("date", endTime)
-                    .equalTo("type", type)
-                    .findAll();
+        if (authToken.isEmpty()) {
+            return;
         }
 
+        Date startDate;
+        Date endDate;
 
-        categoriesTransactions.setValue(newTransactions);
+        Calendar workingCalendar = (Calendar) calendar.clone();
 
+        if (Constants.SELECTED_TAB_STATS == Constants.DAILY) {
+            // Set to start of day
+            workingCalendar.set(Calendar.HOUR_OF_DAY, 0);
+            workingCalendar.set(Calendar.MINUTE, 0);
+            workingCalendar.set(Calendar.SECOND, 0);
+            workingCalendar.set(Calendar.MILLISECOND, 0);
+            startDate = workingCalendar.getTime();
+
+            // Set end date to start of next day
+            workingCalendar.add(Calendar.DAY_OF_MONTH, 1);
+            endDate = workingCalendar.getTime();
+        }
+        else if (Constants.SELECTED_TAB_STATS == Constants.MONTHLY) {
+            // Set to start of month
+            workingCalendar.set(Calendar.DAY_OF_MONTH, 1);
+            workingCalendar.set(Calendar.HOUR_OF_DAY, 0);
+            workingCalendar.set(Calendar.MINUTE, 0);
+            workingCalendar.set(Calendar.SECOND, 0);
+            workingCalendar.set(Calendar.MILLISECOND, 0);
+            startDate = workingCalendar.getTime();
+
+            // Set to start of next month
+            workingCalendar.add(Calendar.MONTH, 1);
+            endDate = workingCalendar.getTime();
+        }
+        else {
+            return;
+        }
+
+        // Call the API to get transactions
+        APIService.getInstance().getTransactions(authToken, startDate, endDate, new APICallback<List<Transaction>>() {
+            @Override
+            public void onSuccess(List<Transaction> result) {
+                // Filter results by type
+                List<Transaction> filteredTransactions = new ArrayList<>();
+                for (Transaction transaction : result) {
+                    if (transaction.getType().equals(type)) {
+                        filteredTransactions.add(transaction);
+                    }
+                }
+
+                categoriesTransactions.postValue(filteredTransactions);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                Log.e("getTransactions", "Error fetching transactions", t);
+                // Consider adding error handling here
+            }
+        });
     }
-
 
     public void getTransactions(Calendar calendar) {
-        this.calendar = calendar;
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
+        this.calendar = (Calendar) calendar.clone(); // Clone to avoid modifying the original calendar
 
-        double income = 0;
-        double expense = 0;
-        double total = 0;
-        RealmResults<Transaction> newTransactions = null;
-        if(Constants.SELECTED_TAB == Constants.DAILY) {
-            // Select * from transactions
-            // Select * from transactions where id = 5
+        SharedPreferences sharedPreferences = getApplication().getSharedPreferences("auth_preferences", Context.MODE_PRIVATE);
+        String authToken = sharedPreferences.getString("auth_token", "");
 
-            newTransactions = realm.where(Transaction.class)
-                    .greaterThanOrEqualTo("date", calendar.getTime())
-                    .lessThan("date", new Date(calendar.getTime().getTime() + (24 * 60 * 60 * 1000)))
-                    .findAll();
-
-            income = realm.where(Transaction.class)
-                    .greaterThanOrEqualTo("date", calendar.getTime())
-                    .lessThan("date", new Date(calendar.getTime().getTime() + (24 * 60 * 60 * 1000)))
-                    .equalTo("type", Constants.INCOME)
-                    .sum("amount")
-                    .doubleValue();
-
-            expense = realm.where(Transaction.class)
-                    .greaterThanOrEqualTo("date", calendar.getTime())
-                    .lessThan("date", new Date(calendar.getTime().getTime() + (24 * 60 * 60 * 1000)))
-                    .equalTo("type", Constants.EXPENSE)
-                    .sum("amount")
-                    .doubleValue();
-
-            total = realm.where(Transaction.class)
-                    .greaterThanOrEqualTo("date", calendar.getTime())
-                    .lessThan("date", new Date(calendar.getTime().getTime() + (24 * 60 * 60 * 1000)))
-                    .sum("amount")
-                    .doubleValue();
-
-
-
-        } else if(Constants.SELECTED_TAB == Constants.MONTHLY) {
-            calendar.set(Calendar.DAY_OF_MONTH,0);
-
-            Date startTime = calendar.getTime();
-
-
-            calendar.add(Calendar.MONTH,1);
-            Date endTime = calendar.getTime();
-
-            newTransactions = realm.where(Transaction.class)
-                    .greaterThanOrEqualTo("date", startTime)
-                    .lessThan("date", endTime)
-                    .findAll();
-
-            income = realm.where(Transaction.class)
-                    .greaterThanOrEqualTo("date", startTime)
-                    .lessThan("date", endTime)
-                    .equalTo("type", Constants.INCOME)
-                    .sum("amount")
-                    .doubleValue();
-
-            expense = realm.where(Transaction.class)
-                    .greaterThanOrEqualTo("date", startTime)
-                    .lessThan("date", endTime)
-                    .equalTo("type", Constants.EXPENSE)
-                    .sum("amount")
-                    .doubleValue();
-
-            total = realm.where(Transaction.class)
-                    .greaterThanOrEqualTo("date", startTime)
-                    .lessThan("date", endTime)
-                    .sum("amount")
-                    .doubleValue();
+        if (authToken.isEmpty()) {
+            return;
         }
 
-        totalIncome.setValue(income);
-        totalExpense.setValue(expense);
-        totalAmount.setValue(total);
-        transactions.setValue(newTransactions);
-//        RealmResults<Transaction> newTransactions = realm.where(Transaction.class)
-//                .equalTo("date", calendar.getTime())
-//                .findAll();
+        Date startDate;
+        Date endDate;
 
+        // Create a new calendar instance for calculations
+        Calendar workingCalendar = (Calendar) calendar.clone();
+
+        if (Constants.SELECTED_TAB == Constants.DAILY) {
+            // Set to start of day
+            workingCalendar.set(Calendar.HOUR_OF_DAY, 0);
+            workingCalendar.set(Calendar.MINUTE, 0);
+            workingCalendar.set(Calendar.SECOND, 0);
+            workingCalendar.set(Calendar.MILLISECOND, 0);
+            startDate = workingCalendar.getTime();
+
+            // Set end date to start of next day
+            workingCalendar.add(Calendar.DAY_OF_MONTH, 1);
+            endDate = workingCalendar.getTime();
+        }
+        else if (Constants.SELECTED_TAB == Constants.MONTHLY) {
+            // Set to start of month
+            workingCalendar.set(Calendar.DAY_OF_MONTH, 1);
+            workingCalendar.set(Calendar.HOUR_OF_DAY, 0);
+            workingCalendar.set(Calendar.MINUTE, 0);
+            workingCalendar.set(Calendar.SECOND, 0);
+            workingCalendar.set(Calendar.MILLISECOND, 0);
+            startDate = workingCalendar.getTime();
+
+            // Set to start of next month
+            workingCalendar.add(Calendar.MONTH, 1);
+            endDate = workingCalendar.getTime();
+        }
+        else {
+            Log.e("getTransactions", "Unsupported tab selection");
+            return;
+        }
+
+        // Call the API to get transactions
+        APIService.getInstance().getTransactions(authToken, startDate, endDate, new APICallback<List<Transaction>>() {
+            @Override
+            public void onSuccess(List<Transaction> result) {
+                double income = 0;
+                double expense = 0;
+                double total = 0;
+
+                for (Transaction transaction : result) {
+                    Log.i("--------TEST-------", String.valueOf(transaction.getId()));
+                    if (transaction.getType().equals(Constants.INCOME)) {
+                        income += transaction.getAmount();
+                    } else if (transaction.getType().equals(Constants.EXPENSE)) {
+                        expense += transaction.getAmount();
+                    }
+                }
+                total = income - expense; // Changed to subtract expense from income
+
+                totalIncome.postValue(income);
+                totalExpense.postValue(expense);
+                totalAmount.postValue(total);
+                transactions.postValue(result);
+
+                Log.d("getTransactions", String.format("Fetched %d transactions between %s and %s",
+                        result.size(), startDate.toString(), endDate.toString()));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                Log.e("getTransactions", "Error fetching transactions", t);
+                // Consider adding error handling here, such as:
+                // errorState.postValue("Failed to fetch transactions");
+            }
+        });
     }
 
-    public void addTransaction(Transaction transaction) {
-        realm.beginTransaction();
-        realm.copyToRealmOrUpdate(transaction);
-        realm.commitTransaction();
-    }
+//    public void addTransaction(Transaction transaction) {
+//        realm.beginTransaction();
+//        realm.copyToRealmOrUpdate(transaction);
+//        realm.commitTransaction();
+//    }
 
     public void deleteTransaction(Transaction transaction) {
-        realm.beginTransaction();
-        transaction.deleteFromRealm();
-        realm.commitTransaction();
+        Log.i("INFO------", "Got transaction to delete: " + transaction);
+
+
+        SharedPreferences sharedPreferences = getApplication().getSharedPreferences("auth_preferences", Context.MODE_PRIVATE);
+        String authToken = sharedPreferences.getString("auth_token", "");
+
+        if (authToken.isEmpty()) {
+            return;
+        }
+
+        Log.i("INFO------", "Trying to delete txn with id: " + transaction.getId());
+
+        APIService.getInstance().deleteTransaction(authToken, transaction.getId() ,new APICallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                Toast.makeText(getApplication(), "Transaction deleted successfully", Toast.LENGTH_SHORT).show();
+                getTransactions(calendar);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                Toast.makeText(getApplication(), "Error in deleting transaction", Toast.LENGTH_SHORT).show();
+
+            }
+        });
         getTransactions(calendar);
     }
 
-    public void addTransactions() {
-        realm.beginTransaction();
-        realm.copyToRealmOrUpdate(new Transaction(Constants.INCOME, "Business", "Cash", "Some note here", new Date(), 500, new Date().getTime()));
-        realm.copyToRealmOrUpdate(new Transaction(Constants.EXPENSE, "Investment", "Bank", "Some note here", new Date(), -900, new Date().getTime()));
-        realm.copyToRealmOrUpdate(new Transaction(Constants.INCOME, "Rent", "Other", "Some note here", new Date(), 500, new Date().getTime()));
-        realm.copyToRealmOrUpdate(new Transaction(Constants.INCOME, "Business", "Card", "Some note here", new Date(), 500, new Date().getTime()));
-        realm.commitTransaction();
-    }
-
-    void setupDatabase() {
-        realm = Realm.getDefaultInstance();
-    }
+//    void setupDatabase() {
+//        realm = Realm.getDefaultInstance();
+//    }
 
 }

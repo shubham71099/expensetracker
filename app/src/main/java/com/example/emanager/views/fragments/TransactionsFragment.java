@@ -1,5 +1,6 @@
 package com.example.emanager.views.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -22,6 +23,8 @@ import com.example.emanager.views.activites.MainActivity;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.Calendar;
+import java.util.List;
+import java.util.Objects;
 
 import io.realm.RealmResults;
 
@@ -88,10 +91,10 @@ public class TransactionsFragment extends Fragment {
         binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                if(tab.getText().equals("Monthly")) {
+                if(Objects.equals(tab.getText(), "Monthly")) {
                     Constants.SELECTED_TAB = 1;
                     updateDate();
-                } else if(tab.getText().equals("Daily")) {
+                } else if(Objects.equals(tab.getText(), "Daily")) {
                     Constants.SELECTED_TAB = 0;
                     updateDate();
                 }
@@ -114,12 +117,12 @@ public class TransactionsFragment extends Fragment {
 
         binding.transactionsList.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        viewModel.transactions.observe(getViewLifecycleOwner(), new Observer<RealmResults<Transaction>>() {
+        viewModel.transactions.observe(getViewLifecycleOwner(), new Observer<List<Transaction>>() {
             @Override
-            public void onChanged(RealmResults<Transaction> transactions) {
-                TransactionsAdapter transactionsAdapter = new TransactionsAdapter(getActivity(), transactions);
+            public void onChanged(List<Transaction> transactions) {
+                TransactionsAdapter transactionsAdapter = new TransactionsAdapter((Context) getActivity(), (List<Transaction>) transactions);
                 binding.transactionsList.setAdapter(transactionsAdapter);
-                if(transactions.size() > 0) {
+                if(!transactions.isEmpty()) {
                     binding.emptyState.setVisibility(View.GONE);
                 } else {
                     binding.emptyState.setVisibility(View.VISIBLE);

@@ -1,5 +1,7 @@
 package com.example.emanager.models;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Date;
 
 import io.realm.RealmObject;
@@ -11,12 +13,13 @@ public class Transaction extends RealmObject {
     private double amount;
 
     @PrimaryKey
-    private long id;
+    @SerializedName("_id")
+    private String id;
 
     public Transaction() {
     }
 
-    public Transaction(String type, String category, String account, String note, Date date, double amount, long id) {
+    public Transaction(String type, String category, String account, String note, Date date, double amount, String id) {
         this.type = type;
         this.category = category;
         this.account = account;
@@ -74,11 +77,11 @@ public class Transaction extends RealmObject {
         this.amount = amount;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 }

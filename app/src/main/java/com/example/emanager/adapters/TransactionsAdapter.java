@@ -3,6 +3,7 @@ package com.example.emanager.adapters;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import com.example.emanager.views.activites.MainActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.RealmResults;
 
@@ -27,10 +29,10 @@ public class TransactionsAdapter  extends  RecyclerView.Adapter<TransactionsAdap
 
 
     Context context;
-    RealmResults<Transaction> transactions;
+    List<Transaction> transactions;
 
 
-    public TransactionsAdapter(Context context, RealmResults<Transaction> transactions) {
+    public TransactionsAdapter(Context context, List<Transaction> transactions) {
         this.context = context;
         this.transactions = transactions;
     }
@@ -54,6 +56,7 @@ public class TransactionsAdapter  extends  RecyclerView.Adapter<TransactionsAdap
 
         Category transactionCategory = Constants.getCategoryDetails(transaction.getCategory());
 
+        assert transactionCategory != null;
         holder.binding.categoryIcon.setImageResource(transactionCategory.getCategoryImage());
         holder.binding.categoryIcon.setBackgroundTintList(context.getColorStateList(transactionCategory.getCategoryColor()));
 
@@ -89,7 +92,7 @@ public class TransactionsAdapter  extends  RecyclerView.Adapter<TransactionsAdap
         return transactions.size();
     }
 
-    public class TransactionViewHolder extends RecyclerView.ViewHolder {
+    public static class TransactionViewHolder extends RecyclerView.ViewHolder {
 
         RowTransactionBinding binding;
 

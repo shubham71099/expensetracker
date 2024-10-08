@@ -2,12 +2,15 @@ package com.example.emanager.views.fragments;
 
 import static com.example.emanager.utils.Constants.SELECTED_STATS_TYPE;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +34,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import io.realm.RealmResults;
 
@@ -57,8 +61,9 @@ public class StatsFragment extends Fragment {
 
     public MainViewModel viewModel;
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentStatsBinding.inflate(inflater);
 
@@ -108,12 +113,14 @@ public class StatsFragment extends Fragment {
         binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                if(tab.getText().equals("Monthly")) {
-                    Constants.SELECTED_TAB_STATS = 1;
-                    updateDate();
-                } else if(tab.getText().equals("Daily")) {
-                    Constants.SELECTED_TAB_STATS = 0;
-                    updateDate();
+                if (tab != null && tab.getText() != null) {
+                    if (Objects.equals(tab.getText(), "Monthly")) {
+                        Constants.SELECTED_TAB_STATS = Constants.MONTHLY;
+                        updateDate();
+                    } else if (Objects.equals(tab.getText(), "Daily")) {
+                        Constants.SELECTED_TAB_STATS = Constants.DAILY;
+                        updateDate();
+                    }
                 }
             }
 
@@ -131,12 +138,10 @@ public class StatsFragment extends Fragment {
 
         Pie pie = AnyChart.pie();
 
-        viewModel.categoriesTransactions.observe(getViewLifecycleOwner(), new Observer<RealmResults<Transaction>>() {
+        viewModel.categoriesTransactions.observe(getViewLifecycleOwner(), new Observer<List<Transaction>>() {
             @Override
-            public void onChanged(RealmResults<Transaction> transactions) {
-
-
-                if(transactions.size() > 0) {
+            public void onChanged(List<Transaction> transactions) {
+                if(!transactions.isEmpty()) {
 
                     binding.emptyState.setVisibility(View.GONE);
                     binding.anyChart.setVisibility(View.VISIBLE);
@@ -152,7 +157,6 @@ public class StatsFragment extends Fragment {
                         if(categoryMap.containsKey(category)) {
                             double currentTotal = categoryMap.get(category).doubleValue();
                             currentTotal += Math.abs(amount);
-
                             categoryMap.put(category, currentTotal);
                         } else {
                             categoryMap.put(category, Math.abs(amount));
@@ -198,12 +202,32 @@ public class StatsFragment extends Fragment {
         return binding.getRoot();
     }
 
-    void updateDate() {
-        if(Constants.SELECTED_TAB_STATS == Constants.DAILY) {
-            binding.currentDate.setText(Helper.formatDate(calendar.getTime()));
-        } else if(Constants.SELECTED_TAB_STATS == Constants.MONTHLY) {
-            binding.currentDate.setText(Helper.formatDateByMonth(calendar.getTime()));
-        }
-        viewModel.getTransactions(calendar, SELECTED_STATS_TYPE);
-    }
+//    void updateDate() {
+//        if(Constants.SELECTED_TAB_STATS == Constants.DAILY) {
+//            binding.currentDate.setText(Helper.formatDate(calendar.getTime()));
+//        } else if(Constants.SELECTED_TAB_STATS == Constants.MONTHLY) {
+//            binding.currentDate.setText(Helper.formatDateByMonth(calendar.getTime()));
+//        }
+//        viewModel.getTransactions(calendar, SELECTED_STATS_TYPE);
+//    }
+        void updateDate() {
+            if (calendar == null || binding == null) {
+                Log.e("UpdateDateError", "Calendar or binding is null!");
+                return;  // Exit if calendar or binding is not initialized
+            }
+
+            if (Constants.SELECTED_TAB_STATS == Constants.DAILY) {
+                binding.currentDate.setText(Helper.formatDate(calendar.getTime()));
+            } else if (Constants.SELECTED_TAB_STATS == Constants.MONTHLY) {
+                binding.currentDate.setText(Helper.formatDateByMonth(calendar.getTime()));
+            }
+
+            try {
+                viewModel.getTransactions(calendar, SELECTED_STATS_TYPE);
+            } catch (Exception e) {
+                Log.e("StatsFragment", "Error in fetching transactions: " + e.getMessage());
+            }
+}
+
+
 }

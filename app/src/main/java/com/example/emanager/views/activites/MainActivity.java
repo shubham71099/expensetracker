@@ -22,6 +22,7 @@ import com.example.emanager.viewmodels.MainViewModel;
 import com.example.emanager.views.fragments.AddTransactionFragment;
 import com.example.emanager.R;
 import com.example.emanager.databinding.ActivityMainBinding;
+import com.example.emanager.views.fragments.ProfileFragment;
 import com.example.emanager.views.fragments.StatsFragment;
 import com.example.emanager.views.fragments.TransactionsFragment;
 import com.google.android.material.navigation.NavigationBarView;
@@ -31,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -40,14 +42,6 @@ public class MainActivity extends AppCompatActivity {
     ActivityMainBinding binding;
 
     Calendar calendar;
-    /*
-    0 = Daily
-    1 = Monthly
-    2 = Calendar
-    3 = Summary
-    4 = Notes
-     */
-
 
     public MainViewModel viewModel;
 
@@ -62,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         setSupportActionBar(binding.toolBar);
-        getSupportActionBar().setTitle("Transactions");
+        Objects.requireNonNull(getSupportActionBar()).setTitle("Expense Tracker");
 
 
         Constants.setCategories();
@@ -81,6 +75,9 @@ public class MainActivity extends AppCompatActivity {
                     getSupportFragmentManager().popBackStack();
                 } else if(item.getItemId() == R.id.stats){
                     transaction.replace(R.id.content, new StatsFragment());
+                    transaction.addToBackStack(null);
+                } else if(item.getItemId() == R.id.profile){
+                    transaction.replace(R.id.content, new ProfileFragment());
                     transaction.addToBackStack(null);
                 }
                 transaction.commit();

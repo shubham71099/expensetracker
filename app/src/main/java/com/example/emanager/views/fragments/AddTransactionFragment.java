@@ -3,9 +3,9 @@ package com.example.emanager.views.fragments;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -22,12 +22,13 @@ import com.example.emanager.databinding.ListDialogBinding;
 import com.example.emanager.models.Account;
 import com.example.emanager.models.Category;
 import com.example.emanager.models.Transaction;
+import com.example.emanager.services.APICallback;
+import com.example.emanager.services.APIService;
 import com.example.emanager.utils.Constants;
 import com.example.emanager.utils.Helper;
 import com.example.emanager.views.activites.MainActivity;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -88,7 +89,7 @@ public class AddTransactionFragment extends BottomSheetDialogFragment {
                     binding.date.setText(dateToShow);
 
                     transaction.setDate(calendar.getTime());
-                    transaction.setId(calendar.getTime().getTime());
+                    transaction.setId(String.valueOf(calendar.getTime().getTime()));
                 });
                 datePickerDialog.show();
             }
@@ -186,9 +187,29 @@ public class AddTransactionFragment extends BottomSheetDialogFragment {
 
             transaction.setNote(note);
 
-            ((MainActivity)getActivity()).viewModel.addTransaction(transaction);
-            ((MainActivity)getActivity()).getTransactions();
-            dismiss();
+            SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("auth_preferences", Context.MODE_PRIVATE);
+            String authToken = sharedPreferences.getString("auth_token", "");
+            APIService.getInstance().addTransaction(authToken, transaction, new APICallback<Transaction>() {
+
+                public void onSuccess(Transaction result) {
+                    Toast.makeText(getContext(), "Transaction added successfully", Toast.LENGTH_SHORT).show();
+                    dismiss();
+                    // Refresh the transaction list in MainActivity
+                    ((MainActivity) requireActivity()).getTransactions();
+                }
+
+
+                public void onError(Throwable t) {
+                    Toast.makeText(getContext(), "Error adding transaction: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+
+
+//            ((MainActivity)getActivity()).viewModel.addTransaction(transaction);
+//            ((MainActivity)getActivity()).getTransactions();
+//            dismiss();
+
+
         });
 
         return binding.getRoot();
