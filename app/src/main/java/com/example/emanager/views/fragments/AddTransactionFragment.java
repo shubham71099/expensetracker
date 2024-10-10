@@ -101,7 +101,6 @@ public class AddTransactionFragment extends BottomSheetDialogFragment {
             categoryDialog.setView(dialogBinding.getRoot());
 
 
-
             CategoryAdapter categoryAdapter = new CategoryAdapter(getContext(), Constants.categories, new CategoryAdapter.CategoryClickListener() {
                 @Override
                 public void onCategoryClicked(Category category) {
@@ -136,7 +135,6 @@ public class AddTransactionFragment extends BottomSheetDialogFragment {
                 }
             });
             dialogBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            //dialogBinding.recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
             dialogBinding.recyclerView.setAdapter(adapter);
 
             accountsDialog.show();
@@ -177,7 +175,6 @@ public class AddTransactionFragment extends BottomSheetDialogFragment {
                 return;
             }
 
-
             double amount = Double.parseDouble(amountText);
             if(transaction.getType().equals(Constants.EXPENSE)) {
                 transaction.setAmount(amount*-1);
@@ -194,21 +191,14 @@ public class AddTransactionFragment extends BottomSheetDialogFragment {
                 public void onSuccess(Transaction result) {
                     Toast.makeText(getContext(), "Transaction added successfully", Toast.LENGTH_SHORT).show();
                     dismiss();
-                    // Refresh the transaction list in MainActivity
+                    // Refresh transaction list in MainActivity
                     ((MainActivity) requireActivity()).getTransactions();
                 }
-
 
                 public void onError(Throwable t) {
                     Toast.makeText(getContext(), "Error adding transaction: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
-
-
-//            ((MainActivity)getActivity()).viewModel.addTransaction(transaction);
-//            ((MainActivity)getActivity()).getTransactions();
-//            dismiss();
-
 
         });
 

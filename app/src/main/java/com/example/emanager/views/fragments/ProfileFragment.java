@@ -33,7 +33,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_profile, container, false);
     }
 
@@ -41,7 +40,6 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize your views
         profileName = view.findViewById(R.id.profile_name);
         profileEmail = view.findViewById(R.id.profile_email);
         Button logoutButton = view.findViewById(R.id.logout);
@@ -62,7 +60,6 @@ public class ProfileFragment extends Fragment {
                 }
             });
         } else {
-            // Handle the case where the token is null
             Toast.makeText(requireContext(), "Authentication token is missing", Toast.LENGTH_LONG).show();
         }
 

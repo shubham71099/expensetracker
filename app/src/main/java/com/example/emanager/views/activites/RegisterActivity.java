@@ -11,23 +11,24 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.emanager.R;
 import com.example.emanager.services.APICallback;
 import com.example.emanager.services.APIService;
-import com.example.emanager.services.LoginResponse;
 import com.example.emanager.services.RegisterResponse;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
+
 
 public class RegisterActivity extends AppCompatActivity {
 
     private EditText editTextName, editTextEmail, editTextPassword, editTextConfirmPassword;
     private Button btnRegister;
     private TextView tvAlreadyRegistered;
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+    );
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,10 +53,14 @@ public class RegisterActivity extends AppCompatActivity {
                 Toast.makeText(RegisterActivity.this, "Please enter name", Toast.LENGTH_SHORT).show();
             } else if (TextUtils.isEmpty(email)) {
                 Toast.makeText(RegisterActivity.this, "Please enter email", Toast.LENGTH_SHORT).show();
+            } else if (!EMAIL_PATTERN.matcher(email).matches()) {
+                Toast.makeText(RegisterActivity.this, "Please enter a valid email", Toast.LENGTH_SHORT).show();
             } else if (TextUtils.isEmpty(password)) {
                 Toast.makeText(RegisterActivity.this, "Please enter password", Toast.LENGTH_SHORT).show();
+            } else if (password.length() < 6) {
+                Toast.makeText(RegisterActivity.this, "Password should be at least 6 digit long", Toast.LENGTH_SHORT).show();
             } else if (TextUtils.isEmpty(confirmPassword)) {
-                Toast.makeText(RegisterActivity.this, "Please confirm password", Toast.LENGTH_SHORT).show();
+                Toast.makeText(RegisterActivity.this, "Please enter confirm password", Toast.LENGTH_SHORT).show();
             } else if (!password.equals(confirmPassword)) {
                 Toast.makeText(RegisterActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
             } else {

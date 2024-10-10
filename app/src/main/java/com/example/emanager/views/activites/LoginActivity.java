@@ -19,11 +19,17 @@ import com.example.emanager.services.APICallback;
 import com.example.emanager.services.LoginResponse;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
+
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText editTextEmail, editTextPassword;
     private SharedPreferences sharedPreferences;
+
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +56,12 @@ public class LoginActivity extends AppCompatActivity {
 
             if (TextUtils.isEmpty(email)) {
                 Toast.makeText(LoginActivity.this, "Please enter email", Toast.LENGTH_SHORT).show();
+            } else if (!EMAIL_PATTERN.matcher(email).matches()) {
+                Toast.makeText(LoginActivity.this, "Please enter a valid email", Toast.LENGTH_SHORT).show();
             } else if (TextUtils.isEmpty(password)) {
                 Toast.makeText(LoginActivity.this, "Please enter password", Toast.LENGTH_SHORT).show();
+            } else if (password.length() < 6) {
+                Toast.makeText(LoginActivity.this, "Password should be at least 6 digit long", Toast.LENGTH_SHORT).show();
             } else {
                 APIService.getInstance().loginUser(email, password, new APICallback<LoginResponse>() {
                     public void onSuccess(LoginResponse loginResponse) {
@@ -88,6 +98,5 @@ public class LoginActivity extends AppCompatActivity {
     private void redirectToMainActivity() {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
-//        finish();  // Close LoginActivity
     }
 }

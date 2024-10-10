@@ -179,41 +179,16 @@ public class StatsFragment extends Fragment {
 
         viewModel.getTransactions(calendar, SELECTED_STATS_TYPE);
 
-
-
-//
-//        pie.title("Fruits imported in 2015 (in kg)");
-//
-//        pie.labels().position("outside");
-//
-//        pie.legend().title().enabled(true);
-//        pie.legend().title()
-//                .text("Retail channels")
-//                .padding(0d, 0d, 10d, 0d);
-//
-//        pie.legend()
-//                .position("center-bottom")
-//                .itemsLayout(LegendLayout.HORIZONTAL)
-//                .align(Align.CENTER);
-
         binding.anyChart.setChart(pie);
 
 
         return binding.getRoot();
     }
 
-//    void updateDate() {
-//        if(Constants.SELECTED_TAB_STATS == Constants.DAILY) {
-//            binding.currentDate.setText(Helper.formatDate(calendar.getTime()));
-//        } else if(Constants.SELECTED_TAB_STATS == Constants.MONTHLY) {
-//            binding.currentDate.setText(Helper.formatDateByMonth(calendar.getTime()));
-//        }
-//        viewModel.getTransactions(calendar, SELECTED_STATS_TYPE);
-//    }
         void updateDate() {
             if (calendar == null || binding == null) {
                 Log.e("UpdateDateError", "Calendar or binding is null!");
-                return;  // Exit if calendar or binding is not initialized
+                return;
             }
 
             if (Constants.SELECTED_TAB_STATS == Constants.DAILY) {
@@ -227,7 +202,6 @@ public class StatsFragment extends Fragment {
             } catch (Exception e) {
                 Log.e("StatsFragment", "Error in fetching transactions: " + e.getMessage());
             }
-}
-
+    }
 
 }

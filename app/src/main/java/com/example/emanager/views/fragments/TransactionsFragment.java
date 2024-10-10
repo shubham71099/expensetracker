@@ -111,10 +111,6 @@ public class TransactionsFragment extends Fragment {
             }
         });
 
-
-
-
-
         binding.transactionsList.setLayoutManager(new LinearLayoutManager(getContext()));
 
         viewModel.transactions.observe(getViewLifecycleOwner(), new Observer<List<Transaction>>() {

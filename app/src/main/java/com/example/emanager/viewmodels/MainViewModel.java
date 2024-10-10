@@ -1,6 +1,5 @@
 package com.example.emanager.viewmodels;
 
-import static java.security.AccessController.getContext;
 
 import android.app.Application;
 import android.content.Context;
@@ -23,12 +22,8 @@ import java.util.List;
 
 import com.example.emanager.services.APIService;
 import io.realm.Realm;
-import io.realm.RealmResults;
 
 public class MainViewModel extends AndroidViewModel {
-
-//    public MutableLiveData<RealmResults<Transaction>> transactions = new MutableLiveData<>();
-//    public MutableLiveData<RealmResults<Transaction>> categoriesTransactions = new MutableLiveData<>();
 
     public MutableLiveData<List<Transaction>> transactions = new MutableLiveData<>();
     public MutableLiveData<List<Transaction>> categoriesTransactions = new MutableLiveData<>();
@@ -42,8 +37,6 @@ public class MainViewModel extends AndroidViewModel {
 
     public MainViewModel(@NonNull Application application) {
         super(application);
-//        Realm.init(application);
-//        setupDatabase();
     }
 
     public void getTransactions(Calendar calendar, String type) {
@@ -157,7 +150,7 @@ public class MainViewModel extends AndroidViewModel {
             return;
         }
 
-        // Call the API to get transactions
+        // Calling API to get transactions
         APIService.getInstance().getTransactions(authToken, startDate, endDate, new APICallback<List<Transaction>>() {
             @Override
             public void onSuccess(List<Transaction> result) {
@@ -166,14 +159,14 @@ public class MainViewModel extends AndroidViewModel {
                 double total = 0;
 
                 for (Transaction transaction : result) {
-                    Log.i("--------TEST-------", String.valueOf(transaction.getId()));
+                    Log.i("-----TESTING-----", String.valueOf(transaction.getId()));
                     if (transaction.getType().equals(Constants.INCOME)) {
                         income += transaction.getAmount();
                     } else if (transaction.getType().equals(Constants.EXPENSE)) {
                         expense += transaction.getAmount();
                     }
                 }
-                total = income - expense; // Changed to subtract expense from income
+                total = income - expense;
 
                 totalIncome.postValue(income);
                 totalExpense.postValue(expense);
@@ -187,17 +180,11 @@ public class MainViewModel extends AndroidViewModel {
             @Override
             public void onError(Throwable t) {
                 Log.e("getTransactions", "Error fetching transactions", t);
-                // Consider adding error handling here, such as:
-                // errorState.postValue("Failed to fetch transactions");
+
             }
         });
     }
 
-//    public void addTransaction(Transaction transaction) {
-//        realm.beginTransaction();
-//        realm.copyToRealmOrUpdate(transaction);
-//        realm.commitTransaction();
-//    }
 
     public void deleteTransaction(Transaction transaction) {
         Log.i("INFO------", "Got transaction to delete: " + transaction);
@@ -227,9 +214,5 @@ public class MainViewModel extends AndroidViewModel {
         });
         getTransactions(calendar);
     }
-
-//    void setupDatabase() {
-//        realm = Realm.getDefaultInstance();
-//    }
 
 }

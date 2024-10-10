@@ -31,6 +31,8 @@ import java.util.List;
 
 public class APIService {
     private static final String BASE_URL = "http://10.0.2.2:5000";
+
+//    private static final String BASE_URL = "https://expensetracker-wra9gxiy.b4a.run";
     private static APIService instance;
     private final APIInterface apiInterface;
 
@@ -153,7 +155,7 @@ public class APIService {
             @Override
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 if (response.isSuccessful()) {
-                    callback.onSuccess(null); // No content returned, just indicate success
+                    callback.onSuccess(null);
                 } else {
                     String errorMessage = parseErrorResponse(response);
                     callback.onError(new Exception(errorMessage));
@@ -195,7 +197,7 @@ public class APIService {
         editor.remove("auth_token");
         editor.apply();
 
-        // Create intent to redirect to login activity
+        // Redirect to login activity
         Intent loginIntent = new Intent(context, LoginActivity.class);
         loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(loginIntent);
@@ -241,12 +243,6 @@ interface APIInterface {
 
     @POST("/api/transactions")
     Call<Transaction> addTransaction(@Header("x-auth-token") String authToken, @Body Transaction transaction);
-
-//    @GET("/api/transactions")
-//    Call<List<Transaction>> getTransactions(@Header("x-auth-token") String authToken);
-//    @GET("/api/transactions")
-//    Call<List<Transaction>> getTransactions(@Header("x-auth-token") String authToken,
-//                                            @Body GetTransactionsRequest getTransactionsRequest);
 
     @GET("/api/transactions")
     Call<List<Transaction>> getTransactions(
