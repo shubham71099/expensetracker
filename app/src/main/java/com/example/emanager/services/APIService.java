@@ -16,6 +16,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Body;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 import com.example.emanager.models.Transaction;
@@ -189,6 +190,26 @@ public class APIService {
             }
         });
     }
+    public void updateUserProfile(String authToken, UpdateUserProfileRequest updateUserProfileRequest, final APICallback<UserProfileResponse> callback) {
+        Call<UserProfileResponse> call = apiInterface.updateUserProfile(authToken, updateUserProfileRequest);
+        call.enqueue(new Callback<UserProfileResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<UserProfileResponse> call, @NonNull Response<UserProfileResponse> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(response.body());
+                } else {
+                    String errorMessage = parseErrorResponse(response);
+                    callback.onError(new Exception(errorMessage));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<UserProfileResponse> call, @NonNull Throwable t) {
+                callback.onError(t);
+            }
+        });
+    }
+
 
     public void logoutUser(Context context) {
         // Clear auth token from SharedPreferences
@@ -224,6 +245,7 @@ class RegisterRequest {
     }
 }
 
+
 class GetTransactionsRequest{
     Date startDate, endDate;
 
@@ -256,5 +278,12 @@ interface APIInterface {
 
     @GET("/api/user/profile")
     Call<UserProfileResponse> getUserProfile(@Header("x-auth-token") String authToken);
+
+    @PUT("/api/user/profile")
+    Call<UserProfileResponse> updateUserProfile(
+            @Header("x-auth-token") String authToken,
+            @Body UpdateUserProfileRequest updateUserProfileRequest
+    );
+
 }
 
