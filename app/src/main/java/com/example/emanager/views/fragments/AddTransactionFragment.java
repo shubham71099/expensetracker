@@ -76,9 +76,13 @@ public class AddTransactionFragment extends BottomSheetDialogFragment {
         binding.date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Calendar calendar = Calendar.getInstance(); // Get current date
                 DatePickerDialog datePickerDialog = new DatePickerDialog(getContext());
+
+                // Set maximum date to today
+                datePickerDialog.getDatePicker().setMaxDate(calendar.getTimeInMillis());
+
                 datePickerDialog.setOnDateSetListener((datePicker, i, i1, i2) -> {
-                    Calendar calendar = Calendar.getInstance();
                     calendar.set(Calendar.DAY_OF_MONTH, datePicker.getDayOfMonth());
                     calendar.set(Calendar.MONTH, datePicker.getMonth());
                     calendar.set(Calendar.YEAR, datePicker.getYear());
@@ -149,6 +153,10 @@ public class AddTransactionFragment extends BottomSheetDialogFragment {
             String category = binding.category.getText().toString().trim();
             String account = binding.account.getText().toString().trim();
 
+            if (transaction.getType() == null || transaction.getType().isEmpty()) {
+                Toast.makeText(getContext(), "Please select type of transaction", Toast.LENGTH_SHORT).show();
+                return;
+            }
             if (date.isEmpty()) {
                 binding.date.setError("Please select date");
                 Toast.makeText(getContext(), "Please select date", Toast.LENGTH_SHORT).show();

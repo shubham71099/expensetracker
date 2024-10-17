@@ -166,7 +166,7 @@ public class MainViewModel extends AndroidViewModel {
                         expense += transaction.getAmount();
                     }
                 }
-                total = income - expense;
+                total = income + expense;
 
                 totalIncome.postValue(income);
                 totalExpense.postValue(expense);

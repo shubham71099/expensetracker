@@ -1,14 +1,18 @@
 package com.example.emanager.views.activites;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.OnBackPressedDispatcherOwner;
 import com.example.emanager.utils.Constants;
 import com.example.emanager.viewmodels.MainViewModel;
 import com.example.emanager.R;
@@ -51,31 +55,53 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                if(item.getItemId() == R.id.transactions) { 
-                    getSupportFragmentManager().popBackStack();
+                getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+
+                if(item.getItemId() == R.id.transactions) {
+                    transaction.replace(R.id.content, new TransactionsFragment());
                 } else if(item.getItemId() == R.id.stats){
                     transaction.replace(R.id.content, new StatsFragment());
-                    transaction.addToBackStack(null);
                 } else if(item.getItemId() == R.id.profile){
                     transaction.replace(R.id.content, new ProfileFragment());
-                    transaction.addToBackStack(null);
                 }
                 transaction.commit();
                 return true;
             }
         });
 
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                    getSupportFragmentManager().popBackStack();
+                } else {
+                    showExitConfirmationDialog();
+                }
+            }
+        });
 
+
+    }
+
+    private void showExitConfirmationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Exit")
+                .setMessage("Are you sure you want to exit?")
+                .setPositiveButton("Yes", (dialog, which) -> finishAffinity()) // Closes the app
+                .setNegativeButton("No", null) // Do nothing
+                .create()
+                .show();
     }
 
     public void getTransactions() {
         viewModel.getTransactions(calendar);
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.top_menu,menu);
         return super.onCreateOptionsMenu(menu);
     }
+
 }
