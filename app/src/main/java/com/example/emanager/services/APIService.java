@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import retrofit2.Call;
@@ -31,9 +32,9 @@ import java.util.List;
 
 
 public class APIService {
-    private static final String BASE_URL = "http://10.0.2.2:5000";
+//    private static final String BASE_URL = "http://10.0.2.2:5000";
 
-//    private static final String BASE_URL = "https://expensetracker-wra9gxiy.b4a.run";
+    private static final String BASE_URL = "https://expensetracker-wra9gxiy.b4a.run";
     private static APIService instance;
     private final APIInterface apiInterface;
 
@@ -211,18 +212,50 @@ public class APIService {
     }
 
 
-    public void logoutUser(Context context) {
-        // Clear auth token from SharedPreferences
-        SharedPreferences sharedPreferences = context.getSharedPreferences("auth_preferences", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove("auth_token");
-        editor.apply();
+    public void logoutUser(Context context, String authToken) {
+        Call<Void> call = apiInterface.logoutUser(authToken);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (response.isSuccessful()) {
+                    SharedPreferences sharedPreferences = context.getSharedPreferences("auth_preferences", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.remove("auth_token");
+                    editor.apply();
 
-        // Redirect to login activity
-        Intent loginIntent = new Intent(context, LoginActivity.class);
-        loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        context.startActivity(loginIntent);
+                    Intent loginIntent = new Intent(context, LoginActivity.class);
+                    loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    context.startActivity(loginIntent);
+                    Toast.makeText(context, "Logout successful !", Toast.LENGTH_LONG).show();
+
+                } else {
+                    SharedPreferences sharedPreferences = context.getSharedPreferences("auth_preferences", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.remove("auth_token");
+                    editor.apply();
+
+                    Intent loginIntent = new Intent(context, LoginActivity.class);
+                    loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    context.startActivity(loginIntent);
+                    Toast.makeText(context, "Failed to logout from server", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                SharedPreferences sharedPreferences = context.getSharedPreferences("auth_preferences", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.remove("auth_token");
+                editor.apply();
+
+                Intent loginIntent = new Intent(context, LoginActivity.class);
+                loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                context.startActivity(loginIntent);
+                Toast.makeText(context, "Error logging out: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
     }
+
 }
 
 
@@ -284,6 +317,10 @@ interface APIInterface {
             @Header("x-auth-token") String authToken,
             @Body UpdateUserProfileRequest updateUserProfileRequest
     );
+
+    @POST("/api/auth/logout")
+    Call<Void> logoutUser(@Header("x-auth-token") String authToken);
+
 
 }
 

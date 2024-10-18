@@ -108,9 +108,9 @@ public class ProfileFragment extends Fragment {
             });
 
             logoutButton.setOnClickListener(v -> {
-                APIService.getInstance().logoutUser(requireContext());
-                Toast.makeText(requireContext(), "Logout successful!", Toast.LENGTH_LONG).show();
+                APIService.getInstance().logoutUser(requireContext(), authToken);
             });
+
         }
     }
 
